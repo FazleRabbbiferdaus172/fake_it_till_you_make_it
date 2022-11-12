@@ -1,59 +1,144 @@
 <!DOCTYPE html>
 <html>
+
 <head>
     <script src="https://cdn.jsdelivr.net/npm/phaser@3.15.1/dist/phaser-arcade-physics.min.js"></script>
 </head>
+
 <body>
 
     <script>
-    var config = {
-        type: Phaser.AUTO,
-        width: 800,
-        height: 600,
-        physics: {
-            default: 'arcade',
-            arcade: {
-                gravity: { y: 200 }
-            }
-        },
-        scene: {
-            preload: preload,
-            create: create
+        var config = {
+            type: Phaser.AUTO,
+            width: 800,
+            height: 600,
+            // physics: {
+            //     default: 'arcade',
+            //     arcade: {
+            //         gravity: { y: 300 },
+            //         debug: false
+            //     }
+            // },
+            scene: {
+                preload: preload,
+                create: create,
+                update: update
+            },
+            backgroundColor: 0x00abff,
+        };
+
+        var game = new Phaser.Game(config);
+        var score = 0;
+        var scoreText;
+        var GameOverText;
+        var keyList = ['Up', 'Down', 'Right', 'Left'];
+        holdFor = 4;
+        var timer;
+        var total = 0;
+        var timedEvent;
+        var backgrounds = [];
+
+        function preload() {
+            this.load.spritesheet('octopus',
+                'assets/octopus.png',
+                { frameWidth: 64, frameHeight: 64 }
+            );
+            this.load.image('backgroundd', 'assets/backgroud.png');
+            this.load.image('top-mid', 'assets/top-mid.png');
+            this.load.image('bottom-mid', 'assets/bottom-mid.png');
+            this.load.image('bottom', 'assets/bottom.png');
+            this.load.image('sky', 'assets/sky.png');
         }
-    };
 
-    var game = new Phaser.Game(config);
+        function textChange() {
+            var index_l = Math.floor(Math.random() * 3);
+            score = keyList[index_l];
+            scoreText.setText('Press: ' + score);
+            timedEvent = this.time.delayedCall(3000, textChange, [], this);
+        }
 
-    function preload ()
-    {
-        this.load.setBaseURL('http://labs.phaser.io');
+        function keyDownDetect(event,) {
 
-        this.load.image('sky', 'assets/skies/space3.png');
-        this.load.image('logo', 'assets/sprites/phaser3-logo.png');
-        this.load.image('red', 'assets/particles/red.png');
-    }
+            if (score != 0 && event.code !== 'Arrow' + score) {
+                this.add.text(250, 300, 'Game Over', { fontSize: '50px', fill: '#000' }).setOrigin(0, 0);
+                player.anims.play('turn', true);
+                for (let i = 0; i < backgrounds.length; ++i) {
+                    const bg = backgrounds[i]
 
-    function create ()
-    {
-        this.add.image(400, 300, 'sky');
+                    bg.ratioX = 0;
+                }
 
-        var particles = this.add.particles('red');
+            }
 
-        var emitter = particles.createEmitter({
-            speed: 100,
-            scale: { start: 1, end: 0 },
-            blendMode: 'ADD'
-        });
+        }
 
-        var logo = this.physics.add.image(400, 100, 'logo');
+        function create() {
+            // timer = game.time.create(false);
 
-        logo.setVelocity(100, 200);
-        logo.setBounce(1, 1);
-        logo.setCollideWorldBounds(true);
+            // //  Set a TimerEvent to occur after 2 seconds
+            // timer.loop(1000, updateCounter, this);
 
-        emitter.startFollow(logo);
-    }
+            // //  Start the timer running - this is important!
+            // //  It won't start automatically, allowing you to hook it to button events and the like.
+            // timer.start();
+            const width = 800;
+            const height = 600;
+            backgrounds.push({
+                ratioX: 0.1,
+                sprite: this.add.tileSprite(0, 0, width, height, 'top-mid')
+                    .setOrigin(0, 0)
+                    .setScrollFactor(0, 0)
+            })
+            backgrounds.push({
+                ratioX: 0.3,
+                sprite: this.add.tileSprite(0, 0, width, height, 'bottom-mid')
+                    .setOrigin(0, 0)
+                    .setScrollFactor(0, 0)
+            })
+            backgrounds.push({
+                ratioX: 0.7,
+                sprite: this.add.tileSprite(0, 0, width, height, 'bottom')
+                    .setOrigin(0, 0)
+                    .setScrollFactor(0, 0)
+            })
+            // this.add.image(400, 300, 'top-mid');
+            // this.add.image(400, 300, 'bottom-mid');
+            // this.add.image(400, 300, 'bottom');
+            player = this.add.sprite(300, 300, 'octopus');
+
+            // player.setBounce(0.2);
+            // player.setCollideWorldBounds(true);
+
+            this.anims.create({
+                key: 'right',
+                frames: this.anims.generateFrameNumbers('octopus', { start: 5, end: 8 }),
+                frameRate: 10,
+                repeat: -1
+            });
+
+            this.anims.create({
+                key: 'turn',
+                frames: [{ key: 'octopus', frame: 4 }],
+                frameRate: 20
+            });
+
+            player.anims.play('right', true);
+
+            scoreText = this.add.text(16, 16, 'Press:  ', { fontSize: '32px', fill: '#000' });
+            timedEvent = this.time.delayedCall(3000, textChange, [], this);
+            this.input.keyboard.on('keydown', keyDownDetect, this);
+        }
+
+        function update() {
+            // textChange();
+            for (let i = 0; i < backgrounds.length; ++i) {
+                const bg = backgrounds[i]
+
+                bg.sprite.tilePositionX -= 1 * bg.ratioX;
+            }
+        }
     </script>
 
 </body>
+
 </html>
